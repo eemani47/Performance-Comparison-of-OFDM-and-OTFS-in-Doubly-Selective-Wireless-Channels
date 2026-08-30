@@ -1,0 +1,384 @@
+OFDM / OTFS DOUBLY-DISPERSIVE RESEARCH PLATFORM
+PROJECT DEVELOPMENT LOG
+===============================================
+
+Purpose
+-------
+This file records the major analysis, validation, correction, and release stages
+of the OFDM/OTFS project as reconstructed from the development sequence in this
+conversation. It is intended as project provenance and a concise version history.
+
+Important provenance note
+-------------------------
+The supplied README was intentionally not used as the authoritative project
+description because it was known to be outdated. The supplied legacy figures
+were also treated as previous-version outputs, not as evidence of the current
+implementation. The Raviteja paper was explicitly excluded from the analysis.
+
+The final scientific conclusion is based on the corrected matched
+OFDM-vs-OTFS methodology and the final validated result set. The final result
+release used a V8.2 base AUDIT with targeted repairs through V8.5; it is therefore
+best described as a targeted-repair release rather than a byte-for-byte
+homogeneous V8.5 full rerun.
+
+VERSION / DEVELOPMENT HISTORY
+=============================
+
+V7.0 / ORIGINAL PACKAGE
+-----------------------
+Starting point:
+- Existing OFDM/OTFS research platform supplied as a ZIP.
+- Legacy README was known to be outdated.
+- Legacy figures were explicitly identified as previous-version results.
+- Several plots, especially Figure 8, were considered potentially incorrect.
+- Initial goal: inspect code, assumptions, theory, processing chain, and plots
+  rather than trusting historical results.
+
+Key initial concerns:
+- OFDM/OTFS comparison methodology was not sufficiently controlled.
+- Detector choice was potentially confounding waveform performance.
+- Delay and Doppler discretization conventions needed verification.
+- E_b/N_0 normalization required consistency across waveforms.
+- Channel diagnostics and pilot/CRLB checks contained questionable assumptions.
+
+V7.1-SCI-CORRECTED
+------------------
+Major corrections introduced:
+- Matched OFDM/OTFS detector methodology for the headline comparison.
+- OFDM-vs-OTFS comparison moved away from comparing different detector classes.
+- E_b/N_0 normalization and waveform accounting were corrected.
+- Fractional-delay handling was reviewed and corrected.
+- Doppler/PSD handling was corrected.
+- MIMO covariance normalization was corrected.
+- OTFS pilot matching and delay/Doppler agreement were corrected.
+- Random-number generation was isolated from global RNG state.
+- Smoke tests were expanded to cover modem, channel, BEM, ICI, covariance,
+  noise-domain, pilot, OTFS, AWGN, message-passing, and complexity checks.
+
+Timing validation:
+- A timing calibration mechanism was added using measured SMOKE and FAST
+  execution points.
+- Initial implementation had a MATLAB syntax error in timing_probe.m; it was
+  subsequently repaired.
+- Timing methodology was upgraded to affine two-point frame scaling where
+  appropriate.
+
+First AUDIT:
+- Studies 1-5 completed successfully.
+- OTFS dominated runtime.
+- Crosswaveform initially exposed a struct/numeric mismatch.
+- Crosswaveform was then repaired and rerun successfully.
+
+V7.2-SCI-CORRECTED
+------------------
+Crosswaveform correction:
+- Fixed the crosswaveform sparsity-diagnostic assignment:
+  sparsity_diagnostic returned a struct while the destination expected numeric.
+- Corrected Figure-8 implementation details:
+  * wide OFDM numerology was used consistently;
+  * physical Doppler definition used Delta-f correctly;
+  * OFDM and OTFS waveform durations were matched;
+  * both used the same information-symbol budget;
+  * matched PCG-MMSE receiver was used for the headline comparison.
+
+V7.3-SCI-CORRECTED
+------------------
+Numerical identity gate work:
+Four validation failures were identified and corrected at the methodology level:
+- OTFS energy-preservation check had incorrectly included CP energy in a unitary
+  useful-sample identity.
+- Water-filling validation/implementation had an incorrect post-hoc power
+  scaling behavior.
+- LS pilot variance was being compared against a scalar classical bound under
+  a doubly-dispersive scenario where the model did not satisfy the assumptions.
+- Comb-pilot LMMSE/CRLB validation mixed inconsistent statistical models.
+
+The validation suite was revised so each check is performed under the model
+for which the claimed identity actually holds.
+
+V7.4-SCI-CORRECTED
+------------------
+- LS pilot variance validation was changed from a single random realization to
+  an ensemble Monte-Carlo check.
+- This addressed an invalid finite-sample variance identity test.
+
+V7.5-SCI-CORRECTED
+------------------
+- QAM unit-power smoke test was corrected.
+- Instead of estimating average constellation power from a small random sample,
+  the complete constellation was evaluated for deterministic normalization.
+- Smoke test then passed.
+
+First fully gate-passing V7.5 AUDIT:
+- Scientific validation gate passed.
+- Numerical identity gate passed 33/33.
+- All 16 studies completed.
+- 13 project figures generated.
+- This became the baseline for deeper physical/claimability inspection.
+
+DEEP RESULT / FIGURE AUDIT
+===========================
+The V7.5 results were then inspected scientifically, beyond code-level gates.
+
+Figure 8:
+- Corrected matched OFDM/OTFS comparison was confirmed.
+- Equal information-symbol count and equal waveform duration were confirmed.
+- Same physical channel and matched PCG-MMSE settings were confirmed.
+- Zero-error high-SNR points were identified as finite-sample/censoring effects,
+  not literal BER=0 physical floors.
+- Diversity slopes were treated as descriptive only, not as universal diversity
+  order claims.
+
+Figure 10:
+- CP-stress methodology was inspected.
+- Need for true inter-block interference under insufficient CP was identified.
+
+Figure 11:
+- Clustered EVA Doppler realization was distinguished from an ideal
+  Clarke/Jakes process.
+- Doppler ACF/PSD diagnostic methodology was found to require correction.
+
+MIMO:
+- Perfect-CSI and aged-CSI comparison required further audit.
+
+V8.0-SCI-CLAIMABLE
+------------------
+Claimability-focused redesign:
+- Headline Figure-8 comparison preserved matched PCG-MMSE for both waveforms.
+- Zero-error BER points were treated using finite-sample upper bounds.
+- Wilson confidence intervals and paired statistics were added.
+- McNemar diagnostics were incorporated for paired OFDM/OTFS comparisons.
+- Claimability summaries were added.
+- Impairment experiments were redesigned to isolate CP stress, phase noise, and
+  impulsive noise more clearly.
+- Channel diagnostics were expanded to separate clustered EVA from Jakes/Clarke.
+- Covariance mismatch and MIMO claimability diagnostics were expanded.
+
+V8.0 EXECUTION
+---------------
+Full AUDIT completed Studies 1-9 before a real Study-10 dimensional bug occurred.
+
+Study 10 failure:
+- Channel realization length was 256 samples while the impairment experiment
+  attempted an input block of 288 samples.
+- Cause: CP-stress/reference construction mismatch.
+
+V8.1-SCI-CLAIMABLE
+------------------
+- Corrected the CP-stress/reference dimension handling.
+- The existing checkpoint allowed Studies 1-9 to be preserved.
+- However, checkpoint release metadata did not match V8.1 and the package rejected
+  it as incompatible rather than silently mixing releases.
+- This exposed an important provenance requirement: version labels and checkpoint
+  identity must be treated as part of scientific reproducibility.
+
+V8.2-SCI-CLAIMABLE
+------------------
+A clean homogeneous release was prepared:
+- No old V7/V8.0/V8.1 checkpoints or result files were reused.
+- Code path was consolidated for a fresh complete run.
+- Additional improvements from an external Claude review were selectively merged.
+
+Useful merged improvements:
+- ICI-free pilot-estimation reference model for estimator/CRLB validation.
+- Expanded covariance-mismatch diagnostics.
+- Fair perfect-CSI MIMO reference using the same noisy received data.
+- Broader impairment stress settings.
+- Additional claimability diagnostics.
+
+Rejected external changes:
+- Changes that weakened release/provenance checks.
+- Changes that accidentally removed the CP-stress fix.
+- A MIMO implementation that changed the noise realization and therefore
+  confounded CSI aging with noise.
+
+V8.2 SMOKE / TIMING
+-------------------
+The final V8.2 pre-AUDIT SMOKE passed:
+- Scientific smoke test passed.
+- All major study timing calibrations were valid.
+- Mismatch study timing was repaired after a matrix-dimension bug.
+
+V8.2 FULL AUDIT
+---------------
+A fresh full AUDIT was executed.
+
+Representative actual study times:
+- baseline: 121.008 s
+- estimation: 107.888 s
+- ici: 36.877 s
+- equalizer: 72.668 s
+- OTFS: 3585.377 s
+- crosswaveform: 1201.653 s
+- otfsPilot: 0.226 s
+- pilots: 3.335 s
+- system: 0.086 s
+- impairments: 136.128 s
+- mobility: 0.065 s
+- reference: 0.049 s
+- complexity: 0.004 s
+- resource: 0.012 s
+- mismatch: 0.076 s
+- mimo: 10.931 s
+
+Initial V8.2 validation failures:
+1. Perfect-CSI MMSE vs aged-CSI MMSE numerical identity failed.
+2. Generated Jakes ACF vs Clarke-Jakes numerical identity failed.
+
+Root causes:
+- MIMO aged-CSI BER accumulation was missing, effectively reporting zero BER.
+- Jakes ACF calculation had an indexing error.
+
+V8.3 TARGETED REPAIR
+--------------------
+- Fixed aged-CSI BER accumulation.
+- Fixed Jakes ACF indexing.
+- No full AUDIT rerun was needed.
+- Targeted repair passed 46/46 numerical checks.
+
+V8.4 TARGETED REPAIR
+--------------------
+Further audit of CP/impairment metadata identified:
+- Effective CP requirement was being inferred incorrectly from the normalized
+  interpolation matrix.
+- Matrix coefficient magnitude was being mistaken for a sample-index quantity.
+
+Correction:
+- Effective resolved tap span derived from the resolved interpolation-matrix
+  row count.
+- For the wide configuration, 14 resolved taps imply a 13-sample memory span.
+
+V8.5 TARGETED REPAIR
+--------------------
+- Regenerated impairment, mobility, and MIMO diagnostics together.
+- Validation again passed:
+  * Scientific validation: PASS
+  * Numerical identity gate: 46/46 PASS
+  * Targeted repair: PASS
+
+FINAL VERIFIED STATE
+====================
+The final targeted-repair result set has:
+- All 16 study outputs represented.
+- Scientific validation gate passed.
+- Numerical identity gate passed 46/46.
+- Corrected matched OFDM/OTFS crosswaveform experiment.
+- Corrected impairment diagnostics.
+- Corrected Jakes/Clarke diagnostic.
+- Corrected MIMO CSI-aging diagnostic.
+- Corrected covariance-mismatch diagnostic.
+- Claimability information preserved in result metadata.
+
+FINAL PROVENANCE
+================
+The final claimable result set should be described as:
+
+V8.5 SCI-CLAIMABLE TARGETED REPAIR
+based on the V8.2/V8.3 base AUDIT with targeted diagnostic repairs.
+
+It should NOT be described as:
+- a byte-for-byte homogeneous V8.5 16-study rerun;
+- a universal proof of OTFS superiority;
+- a universal diversity-order proof.
+
+PRIMARY CLAIMABLE SCIENTIFIC RESULT
+===================================
+The strongest result is the matched OFDM-vs-OTFS comparison.
+
+Experimental conditions:
+- EVA doubly selective channel.
+- Wide numerology.
+- Delta-f = 15 kHz.
+- OFDM N = 256, CP = 32.
+- OTFS DD grid = 32 x 128.
+- 4096 information symbols per frame for both waveforms.
+- Equal total waveform duration / 4608 transmitted samples.
+- Same physical channel realization for the paired comparison.
+- Same truncated PCG-MMSE receiver settings.
+- Tested normalized Doppler:
+  f_D T_u = 0.01, 0.05, 0.10, 0.20.
+
+At BER = 1e-2, interpolated OTFS SNR advantages were approximately:
+- 0.01: 5.13 dB
+- 0.05: 4.60 dB
+- 0.10: 4.75 dB
+- 0.20: 4.37 dB
+
+At 12 dB, measured OTFS BER was approximately 4-9x lower than OFDM
+across the tested normalized-Doppler cases.
+
+At higher SNR, OTFS showed very large BER reductions at several Doppler points;
+zero observed OTFS errors were reported as finite-sample upper-bounded outcomes,
+not literal BER=0 claims.
+
+SAFE WORDING FOR OTFS RESULT
+----------------------------
+"Under the evaluated EVA doubly selective channel, equal waveform duration and
+information-symbol budget, and a matched truncated PCG-MMSE receiver, OTFS
+substantially outperformed OFDM across the tested normalized-Doppler range
+f_D T_u = 0.01-0.20. At BER = 1e-2, OTFS required approximately 4.4-5.1 dB
+less E_b/N_0 than OFDM."
+
+BOUNDARIES OF THE CLAIM
+-----------------------
+Do not claim:
+- universal OTFS superiority;
+- universal diversity order 2 for OTFS;
+- BER=0 as a physical floor;
+- universal robustness to CP deficiency;
+- universal Jakes behavior for EVA;
+- universal MIMO CSI-aging penalties.
+
+SUPPORTING RESULTS
+==================
+
+ICI:
+- ICI power increased strongly with normalized Doppler.
+- Low-Doppler behavior was broadly consistent with quadratic small-Doppler
+  scaling; larger Doppler departed from the simple asymptotic approximation.
+
+Channel estimation:
+- Estimator ordering was approximately:
+  Vector-Kalman <= LMMSE < DFT-LS < LS
+  under the evaluated configuration.
+- At 20 dB, vector-Kalman NMSE was approximately 5x lower than LS.
+
+MIMO:
+- Corrected ordering:
+  perfect-CSI MMSE < aged-CSI MMSE < ZF.
+- CSI-aging penalty reached approximately 10.1 dB in the tested configuration
+  at the high-SNR operating point.
+
+Phase noise:
+- Small phase noise produced limited degradation.
+- Larger phase noise caused sharp BER degradation.
+
+Impulsive noise:
+- Increasing impulse probability produced measurable but configuration-specific
+  BER degradation.
+
+Jakes/Clarke diagnostic:
+- Corrected empirical ACF tracked theoretical J0 correlation well.
+- Final diagnostic RMSE was approximately 0.0232.
+- This validates the generated Jakes reference process; it does not turn the
+  clustered EVA channel into an ideal Jakes process.
+
+CP / impairment sensitivity:
+- Corrected physical-memory metadata indicates 13 samples of required channel
+  memory for the 14-row resolved fractional-delay representation.
+- CP stress remains a sensitivity experiment, not a universal robustness claim.
+
+PROJECT CLOSURE STATUS
+======================
+Scientific validation: PASS
+Numerical validation: 46/46 PASS
+Full set of study outputs: COMPLETE
+Headline Figure-8 methodology: VERIFIED
+Key diagnostics repaired: VERIFIED
+Final result state: CLAIMABLE WITH EXPERIMENT-SCOPE QUALIFICATIONS
+Release provenance: TARGETED-REPAIR, NOT HOMOGENEOUS V8.5 RERUN
+
+Recommended final release name:
+OFDM_OTFS_V8_5_SCI_CLAIMABLE_TARGETED_REPAIR
+
+End of project log.

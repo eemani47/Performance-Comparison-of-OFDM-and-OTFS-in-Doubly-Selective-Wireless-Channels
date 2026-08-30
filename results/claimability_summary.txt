@@ -1,0 +1,14 @@
+Certified claimability summary
+Result file: /Users/apple/Downloads/OFDM_OTFS_V8_5_CLAIMABLE_CLEAN-2/results/audit_wide_results.mat
+Release: V8.5-SCI-CLAIMABLE
+Scope: matched truncated PCG-MMSE, perfect CSI, equal information-bit budget, equal waveform duration, paired information bits.
+Zero-error observations are reported as one-sided 95% upper bounds, not measured BER=0.
+Primary endpoint: f_D T_u=0.10, E_b/N_0=20 dB.
+OFDM errors: 475 / 204800; BER 0.00231934; 95% Wilson CI [0.00212013, 0.00253721].
+OTFS errors: 0 / 204800; BER 0; 95% Wilson CI [0, 1.87568e-05].
+OTFS zero-error 95% upper bound: 1.46276e-05.
+Exact paired McNemar p-value: 2.43087e-63 (diagnostic, not a preregistered hypothesis test).
+Discordant pairs: OFDM-only errors 209; OTFS-only errors 0.
+No diversity-order claim is made from the matched-detector slopes.
+Figure 10 is a controlled impairment sensitivity experiment, not a universal robustness bound.
+Figure 11 separates the clustered EVA physical model from a separately generated Clarke-Jakes statistical reference.
