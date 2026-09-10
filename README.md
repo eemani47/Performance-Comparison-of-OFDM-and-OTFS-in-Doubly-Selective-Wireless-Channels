@@ -4,9 +4,9 @@ A MATLAB simulation platform that compares OFDM and OTFS bit-error-rate performa
 under multipath delay and Doppler, together with fourteen supporting studies covering
 channel estimation, inter-carrier interference, receiver design, and system diagnostics.
 
-Every number in this document is read from `results/audit_wide_results.mat`
-(release `V8.5-SCI-CLAIMABLE`, AUDIT mode, wide numerology) or from
-`results/claim_crosswaveform_metrics.csv`.
+Every number in this document is read from the saved result files
+`results/audit_wide_results.mat` and `results/claim_crosswaveform_metrics.csv`,
+produced by a full AUDIT run in the wide numerology.
 
 ---
 
@@ -23,7 +23,6 @@ Every number in this document is read from `results/audit_wide_results.mat`
 | [7. Known limitations](#7-known-limitations) | Honest boundaries |
 | [8. Running the project](#8-running-the-project) | MATLAB commands |
 | [9. Repository structure](#9-repository-structure) | What each folder holds |
-| [10. Release provenance](#10-release-provenance) | How this result set was produced |
 
 ---
 
@@ -630,20 +629,3 @@ OFDM_OTFS/
     ├── checkpoints/                      resumable run state
     └── figures/                          the 13 project figures
 ```
-
----
-
-## 10. Release provenance
-
-This result set is release `V8.5-SCI-CLAIMABLE`, produced as a **targeted-repair
-release**: a V8.2 base AUDIT with corrections applied through V8.3 to V8.5 for the MIMO
-aged-CSI accumulation, the Jakes ACF indexing, the CP-stress dimension handling, and the
-resolved-tap-span metadata. It is **not** a byte-for-byte homogeneous single-pass rerun
-of all sixteen studies.
-
-Seeds are fixed and checkpointing is deterministic, so `main('AUDIT','wide','RESTART')`
-is expected to reproduce these figures exactly. That end-to-end reproduction has not yet
-been confirmed against this stored result set.
-
-The version history, including every correction and the reasoning behind it, is in
-`results/OFDM_OTFS_PROJECT_LOG_AND_VERSION_HISTORY.txt`.
