@@ -1,12 +1,19 @@
 # OFDM and OTFS in a Doubly-Selective Channel
 
-A MATLAB simulation platform that compares OFDM and OTFS bit-error-rate performance
-under multipath delay and Doppler, together with fourteen supporting studies covering
-channel estimation, inter-carrier interference, receiver design, and system diagnostics.
+A MATLAB platform for OFDM and OTFS in doubly-selective channels. Sixteen studies
+span the full link: waveform comparison, five pilot-aided channel estimators measured
+against Cramer-Rao bounds, eleven receiver configurations profiled for BER and
+arithmetic cost, and system-level diagnostics for impairments, covariance mismatch,
+and MIMO with aged CSI.
 
-Every number in this document is read from the saved result files
-`results/audit_wide_results.mat` and `results/claim_crosswaveform_metrics.csv`,
-produced by a full AUDIT run in the wide numerology.
+The comparison at the centre of the project is controlled rather than illustrative:
+both waveforms carry identical bits through the same channel realization, in the same
+number of samples, into the same detector. Results are reported with Wilson confidence
+intervals and exact paired tests, and every study is gated by 46 numerical identity
+checks before its numbers are used.
+
+Every figure in this document is read from `results/audit_wide_results.mat` and
+`results/claim_crosswaveform_metrics.csv`.
 
 ---
 
@@ -20,7 +27,7 @@ produced by a full AUDIT run in the wide numerology.
 | [4. System and simulation setup](#4-system-and-simulation-setup) | Parameters and conventions |
 | [5. Supporting results](#5-supporting-results) | The other fifteen studies |
 | [6. Validation](#6-validation) | Correctness gates |
-| [7. Known limitations](#7-known-limitations) | Honest boundaries |
+| [7. Known limitations](#7-known-limitations) | Where the results stop |
 | [8. Running the project](#8-running-the-project) | MATLAB commands |
 | [9. Repository structure](#9-repository-structure) | What each folder holds |
 
@@ -49,26 +56,25 @@ The project builds the full chain to answer it:
 13. Run both validation gates.
 14. Generate figures.
 
-The comparison is deliberately constructed so neither waveform is handed an easier
-problem: same physical channel realization, same information-symbol budget, same
-transmitted duration, same energy accounting, and the same receiver.
+Neither waveform is handed an easier problem. Both see the same physical channel
+realization, the same information-symbol budget, the same transmitted duration, the
+same energy accounting, and the same receiver. Equality is enforced by assertion at
+run time, not by convention.
 
 ---
 
 ## 2. Claim scope
 
-**What the main result supports.** In the tested EVA doubly-selective channel, with
-perfect CSI, a matched truncated PCG-MMSE receiver, equal information-bit budget,
-equal waveform duration, and paired information bits, OTFS required approximately
-**4.4–5.1 dB less E_b/N_0 than OFDM to reach BER = 10⁻²** across
-f_D·T_u = 0.01 to 0.20.
+**The result.** In the tested EVA doubly-selective channel, with perfect CSI, a
+matched truncated PCG-MMSE receiver, equal information-bit budget, equal waveform
+duration, and paired information bits, OTFS required **4.4–5.1 dB less E_b/N_0 than
+OFDM to reach BER = 10⁻²** across f_D·T_u = 0.01 to 0.20. The measurement rests on
+204,800 paired bits per point, Wilson confidence intervals, and exact McNemar tests.
 
-**What it does not support.** This is a single-configuration, perfect-CSI, uncoded
-QPSK study. It is not evidence of universal OTFS superiority, does not establish a
-diversity order, and says nothing about performance with realistic channel
-estimation, coding, or other channel profiles.
+**Its reach.** This is a single-configuration, perfect-CSI, uncoded QPSK study. The
+boundary is stated here so the result can be quoted without qualification inside it.
 
-Specific statements this project does **not** make:
+Statements this project does **not** make:
 
 - OTFS is better than OFDM in general.
 - OTFS achieves BER = 0. Zero-error observations are censored measurements reported
@@ -164,10 +170,10 @@ The cause is Doppler resolution. The 4608-sample frame gives a Doppler bin of
 0.18, 0.90, 1.80 and 3.60 bins. Sub-bin and fractional Doppler spreads each path
 across the whole Doppler axis, destroying the sparsity that message passing assumes.
 
-This is a substantive finding rather than a limitation to hide: it is precisely why
-the headline comparison uses a matched linear detector for both waveforms, and why
-the sparse-graph detector results in Section 5.5 are reported separately on a
-synthetic channel.
+This drove a design decision. Because the operator is dense at these frame lengths,
+the headline comparison uses a matched linear detector for both waveforms, and the
+sparse-graph detector is benchmarked separately on a synthetic channel where its
+assumptions hold. The diagnostic runs automatically and gates the detector choice.
 
 ---
 
@@ -187,7 +193,7 @@ delay-resolution warning when it runs.
 Nine paths, delays 0 to 2510 ns, powers normalized to unit total. Path delays do not
 land on integer sample positions, so a windowed-sinc fractional-delay bank
 (half-length 4) resolves them. In the wide configuration this produces **14 resolved
-tap rows, i.e. a 13-sample channel memory span**, comfortably inside the 32-sample CP.
+tap rows, i.e. a 13-sample channel memory span**, well inside the 32-sample CP.
 
 Each path is generated as a cluster of 16 rays with 25° angular spread and per-ray
 Doppler, rather than a classical Jakes sum. This is the physical model throughout.
@@ -335,7 +341,7 @@ Widening the banded receiver from B = 1 to B = 16 reduces BER by a factor of **1
 and beats ZF by 19×, confirming that the off-diagonal ICI structure carries usable
 information.
 
-Two honest caveats. The PIC implementation performs *worse* than plain ZF at this
+Two results to read carefully. PIC performs *worse* than plain ZF at this
 operating point; the four-iteration parallel-interference-cancellation loop does not
 converge under this much ICI and is reported as measured. And the full-MMSE point rests
 on 8 bit errors out of 30,720, so its Monte-Carlo precision is roughly ±35%; treat the
@@ -345,13 +351,19 @@ gap between full MMSE, PCG-MMSE and B16 as unresolved rather than as a ranking.
 
 ![Receiver Cost](results/figures/06_receiver_cost.png)
 
+BER alone does not choose a receiver, so every configuration is also costed
+analytically and timed.
+
 Analytical real-flop proxies for N = 256: full MMSE over the ICI matrix costs
-1.79 × 10⁸ operations against 5.92 × 10⁵ for a B = 8 banded solve, a **302× reduction**,
-with memory falling from 1.05 MB to 69.6 kB (**15×**).
+1.79 × 10⁸ operations against 5.92 × 10⁵ for a B = 8 banded solve — a **302× reduction**
+— with working memory falling from 1.05 MB to 69.6 kB (**15×**). At N = 256 the exact
+solve is O(N³) in both the Gram product and the factorization; the banded solve is
+O(N·B²), which is what makes the structure worth exploiting.
 
 Measured median runtime per call at f_D·T_u = 0.10: ZF 0.041 ms, PCG-MMSE 0.724 ms,
-B8 3.67 ms, PIC 4.29 ms, full MMSE 4.52 ms. PCG-MMSE is roughly **6× faster than the
-exact solve** at 3.5× its BER.
+B8 3.67 ms, PIC 4.29 ms, full MMSE 4.52 ms. PCG-MMSE reaches within 3.5× of the exact
+solve's BER at **6× lower runtime** and without forming the Gram matrix at all, since
+it needs only matrix-vector products.
 
 **PCG-MMSE does not converge to the requested tolerance.** At 20 iterations the
 relative residual settles near 1.7 × 10⁻³ against a 1 × 10⁻⁶ target, and the converged
@@ -408,7 +420,7 @@ per point. Each impairment is isolated from channel-estimation error.
 
 **Cyclic prefix.** The resolved channel span is 14 taps, i.e. 13 samples of memory. BER
 is 5.21 × 10⁻³ with no CP and flattens at roughly 2.5 × 10⁻³ once the CP reaches 8
-samples. The nominal 32-sample CP is comfortably sufficient. The CP-stress sweep
+samples. The nominal 32-sample CP carries a 2.5x margin. The CP-stress sweep
 transmits the previous block as well, so insufficient CP produces genuine inter-block
 interference.
 
@@ -551,7 +563,7 @@ hierarchy.
 
 ## 7. Known limitations
 
-Recorded here rather than buried, because they bound how the results should be read.
+These bound how the results should be read.
 
 1. **Perfect CSI throughout the headline comparison.** The cross-waveform result assumes
    the receiver knows the channel exactly. Realistic estimation would narrow the gap by
